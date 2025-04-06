@@ -1,4 +1,4 @@
-const config = require('../config.json'); // Fixed relative path
+const config = require('config.json');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
 
@@ -13,11 +13,7 @@ async function initialize() {
     await connection.query(`CREATE DATABASE IF NOT EXISTS \`${database}\`;`);
 
     // connect to db
-    const sequelize = new Sequelize(database, user, password, {
-        host,
-        dialect: 'mysql',
-        logging: false, // optional: disable logging
-    });
+    const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
 
     // init models and add them to the exported db object
     db.Account = require('../accounts/account.model')(sequelize);
@@ -29,7 +25,4 @@ async function initialize() {
 
     // sync all models with database
     await sequelize.sync({ alter: true });
-
-    // expose Sequelize instance (optional)
-    db.sequelize = sequelize;
 }
