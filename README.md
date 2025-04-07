@@ -1,248 +1,185 @@
-User Management API
-A secure user authentication and management system built with Node.js, Express, MySQL, and Sequelize. This API includes features such as user registration, login with JWT, email verification, password reset, and role-based access control.
+User Authentication API Documentation
+Table of Contents
+Database Configuration
+API Endpoints
+Security Authentication
+Notification Setup
+Administrator Functions
+Error Management
+Deployment Instructions
 
-👥 Developers
-Amama
-
-Mahawan
-
-📌 Table of Contents
 Prerequisites
+Node.js v18+
+MySQL 10.3 or newer
+npm 9+
 
-Installation
+installation
+npm ci --production
 
-Configuration
+On config.json
+{
+"dbConfig": {
+"host": "auth-db.local",
+"port": 3306,
+"username": "auth_user",
+"password": "SecureAuth@2023",
+"database": "user_auth_system"
+},
+"jwtSecret": "XkP9s#v2y$B&E)H+",
+"systemEmail": "no-reply@user-auth-api.com",
+"mailSettings": {
+"service": "MailGun",
+"port": 465,
+"credentials": {
+"user": "api@mg.user-auth.com",
+"pass": "MailGunPass123"
+}
+}
+}
 
-Database Setup
+Start the server:
+npm run dev
 
-Running the Server
+Used mysql shell
+\connect auth_user@localhost
+
+CREATE DATABASE user_auth_system;
 
 API Endpoints
+Authentication Endpoints
+Initial registrant becomes System Administrator
+Endpoint: POST /auth/signup
+Description: Create new user profile
+Request Body:
 
-Authentication
-
-Account Management
-
-Password Reset
-
-Error Handling
-
-Deployment Notes
-
-🧰 Prerequisites
-Node.js
-
-MySQL 9.2+
-
-npm
-
-📦 Installation
-Clone the repository and install dependencies:
-
-bash
-Copy
-Edit
-npm install
-⚙️ Configuration
-Update the config.json file with your environment-specific details:
-
-json
-Copy
-Edit
 {
-  "database": {
-    "host": "localhost",
-    "port": 3306,
-    "user": "roots",
-    "password": "Sancija-11",
-    "database": "node-mysql-signup-verification-api"
-  },
-  "secret": "TcxtoIgRRbUqqgW174x1zAA==",
-  "emailFrom": "info@node-mysql-signup-verification-api.com",
-  "smtpOptions": {
-    "host": "smtp.ethereal.email",
-    "port": 587,
-    "auth": {
-      "user": "ladarius66@ethereal.email",
-      "pass": "HaCUhbSy1XEmTpTExr"
-    }
-  }
+"salutation": "Dr",
+"givenName": "Alice",
+"familyName": "Johnson",
+"email": "alice.johnson@example.org",
+"secret": "VerySecure!456",
+"confirmSecret": "VerySecure!456",
+"agreedToTerms": true
 }
-🗃️ Database Setup
-Create the database using MySQL shell or a GUI tool:
 
-sql
-Copy
-Edit
-CREATE DATABASE `node-mysql-signup-verification-api`;
-🚀 Running the Server
-Start the server in development mode:
-
-bash
-Copy
-Edit
-npm run start:dev
-📡 API Endpoints
-🔐 Authentication
-Register New User
-POST /accounts/register
-Registers a new user. First registered user is assigned the "Admin" role.
-
-json
-Copy
-Edit
+Confirm Email Address
+Endpoint: POST /auth/confirm
+Description: Validate user's email
+Request Body:
 {
-  "title": "Mr",
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "password": "Password123!",
-  "confirmPassword": "Password123!",
-  "acceptTerms": true
+"validationCode": "email-verification-token"
 }
-Verify Email
-POST /accounts/verify-email
 
-json
-Copy
-Edit
+Login
+Endpoint: POST /auth/login
+Description: Authenticate and receive tokens
+Request Body:
 {
-  "token": "verification-token-from-email"
+"email": "alice.johnson@example.org",
+"secret": "VerySecure!456"
 }
-Authenticate
-POST /accounts/authenticate
 
-json
-Copy
-Edit
+Response
 {
-  "email": "john.doe@example.com",
-  "password": "Password123!"
+"userId": 7,
+"salutation": "Dr",
+"givenName": "Alice",
+"familyName": "Johnson",
+"email": "alice.johnson@example.org",
+"accessLevel": "Admin",
+"registered": "2025-04-06T09:15:22.000Z",
+"lastModified": null,
+"emailConfirmed": true,
+"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+"renewalToken": "88c29e251fa34f40a8b0fd89f839e1a978a34..."
 }
-Response:
 
-json
-Copy
-Edit
+Renew Access Token
+Endpoint: POST /auth/renew
+Description: Obtain fresh access token
+Request Cookies: Must include renewalToken cookie
+Response: New access and renewal tokens
+
+Invalidate Token
+Endpoint: POST /auth/invalidate
+Description: Disable a renewal token
+Request Body:
 {
-  "id": 1,
-  "title": "Mr",
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "role": "User",
-  "created": "2025-04-05T11:38:07.000Z",
-  "updated": null,
-  "isVerified": true,
-  "jwtToken": "eyJhbGciOi...",
-  "refreshToken": "69b39e251eea4f..."
+"token": "token-to-disable"
 }
-Refresh Token
-POST /accounts/refresh-token
-Uses a valid refresh token (via cookies) to issue a new JWT.
 
-Revoke Token
-POST /accounts/revoke-token
-Revokes a given refresh token.
+List All Users (Admin only)
+Endpoint: GET /auth/users
+Description: Retrieve all user profiles
+Auth Required: Yes (Admin)
+Response: Collection of user objects
 
-json
-Copy
-Edit
+Get User Profile
+Endpoint: GET /auth/users/{userId}
+Description: Fetch specific user details
+Auth Required: Yes (Admin or profile owner)
+Response: Complete user information
+
+Add New User (Admin only)
+Endpoint: POST /auth/users
+Description: Register new system user
+Auth Required: Yes (Admin)
+Request Body:
 {
-  "token": "refresh-token-to-revoke"
+"salutation": "Ms",
+"givenName": "Sarah",
+"familyName": "Williams",
+"email": "sarah.w@example.org",
+"secret": "AnotherSecure!789",
+"confirmSecret": "AnotherSecure!789",
+"accessLevel": "User"
 }
-👤 Account Management
-Get All Accounts (Admin Only)
-GET /accounts
-Returns a list of all registered users.
 
-Get User by ID
-GET /accounts/{id}
-Returns user data by ID (Admin or account owner only).
+Response: Newly created user object
 
-Create New Account (Admin Only)
-POST /accounts
-
-json
-Copy
-Edit
+Modify User
+Endpoint: PATCH /auth/users/{userId}
+Description: Update user information
+Auth Required: Yes (Admin or profile owner)
+Request Body:
 {
-  "title": "Mr",
-  "firstName": "John",
-  "lastName": "Doe",
-  "email": "john.doe@example.com",
-  "password": "Password123!",
-  "confirmPassword": "Password123!",
-  "role": "User"
+"givenName": "Sarah",
+"familyName": "Wilson"
 }
-Update Account
-PUT /accounts/{id}
 
-json
-Copy
-Edit
+Response: Updated user details
+
+Remove User
+Endpoint: DELETE /auth/users/{userId}
+Description: Delete user account
+Auth Required: Yes (Admin or profile owner)
+Response: Confirmation of deletion
+
+Password Recovery
+Endpoint: POST /auth/request-reset
+Description: Initiate password recovery
+Request Body:
 {
-  "firstName": "Updated",
-  "lastName": "Name"
+"email": "alice.johnson@example.org"
 }
-Delete Account
-DELETE /accounts/{id}
-Deletes a user account (Admin or owner only).
+Response: Instructions to check email
 
-🔁 Password Reset
-Forgot Password
-POST /accounts/forgot-password
-
-json
-Copy
-Edit
+Verify Reset Token
+Endpoint: POST /auth/check-reset-token
+Description: Confirm reset token validity
+Request Body:
 {
-  "email": "john.doe@example.com"
+"token": "password-reset-code"
 }
-Validate Reset Token
-POST /accounts/validate-reset-token
+Response: Token validation status
 
-json
-Copy
-Edit
+Complete Password Reset
+Endpoint: POST /auth/complete-reset
+Description: Finalize password change
+Request Body:
 {
-  "token": "reset-token-from-email"
+"token": "password-reset-code",
+"newSecret": "BrandNew!123",
+"confirmSecret": "BrandNew!123"
 }
-Reset Password
-POST /accounts/reset-password
-
-json
-Copy
-Edit
-{
-  "token": "reset-token-from-email",
-  "password": "NewPassword123!",
-  "confirmPassword": "NewPassword123!"
-}
-❗ Error Handling
-The API returns standard HTTP status codes for errors:
-
-Code	Description
-200	Success
-400	Bad Request
-401	Unauthorized
-403	Forbidden
-404	Not Found
-500	Server Error
-Error Format:
-
-json
-Copy
-Edit
-{
-  "message": "Error description"
-}
-🚚 Deployment Notes
-Ensure the environment variables in config.json are production-safe.
-
-Use HTTPS in production.
-
-Change email provider for production (e.g., SendGrid, Mailgun).
-
-Use a secure secret key in production.
-
+Response: Password update confirmation
