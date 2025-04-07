@@ -1,22 +1,29 @@
-User Authentication API Documentation
-Table of Contents
-Database Configuration
+##### Developer 1/Amama == Develoiper 2/Mahawan
+
+## User Management API Documentation
+
+# Table of Contents
+
+Database Setup
 API Endpoints
-Security Authentication
-Notification Setup
-Administrator Functions
-Error Management
-Deployment Instructions
+Authentication
+Email Configuration
+Admin Features
+Error Handling
+Deployment Guidelines
 
-Prerequisites
-Node.js v18+
-MySQL 10.3 or newer
-npm 9+
+# Prerequisites
 
-installation
-npm ci --production
+Node.js
+MySQL 9.2 or higher
+npm
 
-On config.json
+# installation
+
+npm install
+
+# On config.json
+
 {
 "dbConfig": {
 "host": "auth-db.local",
@@ -37,32 +44,24 @@ On config.json
 }
 }
 
-Start the server:
-npm run dev
+# Start the server:
 
-Used mysql shell
+npm run start:dev
+
+# Used mqsql shell 
+
 \connect auth_user@localhost
 
 CREATE DATABASE user_auth_system;
 
 API Endpoints
-Authentication Endpoints
-Initial registrant becomes System Administrator
-Endpoint: POST /auth/signup
-Description: Create new user profile
-Request Body:
 
-{
-"salutation": "Dr",
-"givenName": "Alice",
-"familyName": "Johnson",
-"email": "alice.johnson@example.org",
-"secret": "VerySecure!456",
-"confirmSecret": "VerySecure!456",
-"agreedToTerms": true
-}
+### API Endpoints
 
-Confirm Email Address
+## Authentication Endpoints
+
+# Confirm Email Address
+
 Endpoint: POST /auth/confirm
 Description: Validate user's email
 Request Body:
@@ -70,7 +69,18 @@ Request Body:
 "validationCode": "email-verification-token"
 }
 
-Login
+{
+  "title": "Mr",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "Password123!",
+  "confirmPassword": "Password123!",
+  "acceptTerms": true
+}
+
+# LOGIN
+
 Endpoint: POST /auth/login
 Description: Authenticate and receive tokens
 Request Body:
@@ -79,92 +89,136 @@ Request Body:
 "secret": "VerySecure!456"
 }
 
-Response
-{
-"userId": 7,
-"salutation": "Dr",
-"givenName": "Alice",
-"familyName": "Johnson",
-"email": "alice.johnson@example.org",
-"accessLevel": "Admin",
-"registered": "2025-04-06T09:15:22.000Z",
-"lastModified": null,
-"emailConfirmed": true,
-"accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-"renewalToken": "88c29e251fa34f40a8b0fd89f839e1a978a34..."
-}
+#  Verify Email
 
-Renew Access Token
-Endpoint: POST /auth/renew
-Description: Obtain fresh access token
-Request Cookies: Must include renewalToken cookie
-Response: New access and renewal tokens
-
-Invalidate Token
-Endpoint: POST /auth/invalidate
-Description: Disable a renewal token
+Endpoint: POST /accounts/verify-email
+Description: Verify a user's email address
 Request Body:
 {
-"token": "token-to-disable"
+  "token": "verification-token-from-email"
 }
 
-List All Users (Admin only)
-Endpoint: GET /auth/users
-Description: Retrieve all user profiles
+
+# Authenticate
+
+Endpoint: POST /accounts/authenticate
+Description: Authenticate a user and get JWT token
+Request Body:
+{
+  "email": "john.doe@example.com",
+  "password": "Password123!"
+}
+
+# Response 
+
+{
+  "id": 5,
+  "title": "Mr",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "role": "User",
+  "created": "2025-04-05T11:38:07.000Z",
+  "updated": null,
+  "isVerified": true,
+  "jwtToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "69b39e251eea4f40a8b0fd89f839e1a978a34..."
+}
+
+
+# Refresh Token
+
+Endpoint: POST /accounts/refresh-token
+Description: Get a new JWT token using a refresh token
+Request Cookies: Include the refreshToken cookie
+Response: New JWT token and refresh token
+
+
+# Revoke Token
+
+Endpoint: POST /accounts/revoke-token
+Description: Revoke a refresh token
+Request Body:
+{
+  "token": "refresh-token-to-revoke"
+}
+
+
+# Get All Accounts (Admin only)
+
+Endpoint: GET /accounts
+Description: Get all user accounts
 Auth Required: Yes (Admin)
-Response: Collection of user objects
+Response: Array of user accounts
 
-Get User Profile
-Endpoint: GET /auth/users/{userId}
-Description: Fetch specific user details
-Auth Required: Yes (Admin or profile owner)
-Response: Complete user information
+# Get Account by ID
 
-Add New User (Admin only)
-Endpoint: POST /auth/users
-Description: Register new system user
+Endpoint: GET /accounts/{id}
+Description: Get a specific user account
+Auth Required: Yes (Admin or account owner)
+Response: User account details
+
+# Create Account (Admin only)
+
+Endpoint: POST /accounts
+Description: Create a new user account
 Auth Required: Yes (Admin)
 Request Body:
 {
-"salutation": "Ms",
-"givenName": "Sarah",
-"familyName": "Williams",
-"email": "sarah.w@example.org",
-"secret": "AnotherSecure!789",
-"confirmSecret": "AnotherSecure!789",
-"accessLevel": "User"
+  "title": "Mr",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "Password123!",
+  "confirmPassword": "Password123!",
+  "role": "User"
 }
 
-Response: Newly created user object
+Response: Created user account details
 
-Modify User
-Endpoint: PATCH /auth/users/{userId}
-Description: Update user information
-Auth Required: Yes (Admin or profile owner)
+# Update Account
+
+Endpoint: PUT /accounts/{id}
+Description: Update a user account
+Auth Required: Yes (Admin or account owner)
 Request Body:
 {
-"givenName": "Sarah",
-"familyName": "Wilson"
+  "firstName": "Updated",
+  "lastName": "Name"
 }
 
-Response: Updated user details
+Response: Updated user account details
 
-Remove User
-Endpoint: DELETE /auth/users/{userId}
-Description: Delete user account
-Auth Required: Yes (Admin or profile owner)
-Response: Confirmation of deletion
+# Delete Account
 
-Password Recovery
-Endpoint: POST /auth/request-reset
-Description: Initiate password recovery
+Endpoint: DELETE /accounts/{id}
+Description: Delete a user account
+Auth Required: Yes (Admin or account owner)
+Response: A message indicating successful deletion
+
+
+## Forgot Password
+
+Endpoint: POST /accounts/forgot-password
+Description: Request a password reset
 Request Body:
 {
-"email": "alice.johnson@example.org"
+  "email": "john.doe@example.com"
 }
-Response: Instructions to check email
+Response: A message to check email for reset instructions
 
-Verify Reset Token
+## Validate Reset Token
+
+Endpoint: POST /accounts/validate-reset-token
+Description: Validate a password reset token
+Request Body:
+{
+  "token": "reset-token-from-email"
+}
+Response: A message indicating valid token
+
+## Verify Reset Token
+
 Endpoint: POST /auth/check-reset-token
 Description: Confirm reset token validity
 Request Body:
@@ -173,13 +227,19 @@ Request Body:
 }
 Response: Token validation status
 
-Complete Password Reset
-Endpoint: POST /auth/complete-reset
-Description: Finalize password change
-Request Body:
-{
-"token": "password-reset-code",
-"newSecret": "BrandNew!123",
-"confirmSecret": "BrandNew!123"
-}
-Response: Password update confirmation
+
+
+# Error Handling
+# The API uses standard HTTP status codes:
+
+# 200: Success
+# 400: Bad Request
+# 401: Unauthorized
+# 403: Forbidden
+# 404: Not Found
+# 500: Server Error
+# Error responses follow this format:
+
+# {
+  # "message": "Error description"
+# }
